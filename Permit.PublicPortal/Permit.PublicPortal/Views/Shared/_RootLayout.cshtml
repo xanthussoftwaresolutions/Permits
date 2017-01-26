@@ -1,0 +1,902 @@
+﻿@{
+    ViewBag.CurrentPage = "";
+    ViewBag.Register = "";
+}
+<html lang="en" class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <link rel="SHORTCUT ICON" href="~/favicon.ico" />
+    <link href="~/Content/Custom.css" rel="stylesheet" />
+    @Styles.Render("~/bundles/Styles")
+    @Scripts.Render("~/bundles/JsScripts")
+
+    <script>
+
+        $(function ($) {
+            $('.responsive-menu').hide();
+        });
+
+        $.ajaxSetup({
+            cache: false
+        });
+
+        function ShowLoadingPanel() {
+            $("#loadingPanel").css({}).fadeIn(400);
+        }
+
+        function HideLoadingPanel() {
+            window.scrollTo(0, 0);
+            $("#loadingPanel").css({}).fadeOut(400);
+        }
+
+        function gCaptchaOnloadCallback() {
+            var widgetId = grecaptcha.render($('.g-recaptcha')[0], { sitekey: '6LepqhQTAAAAAAReKZEwlTXrzpmbaTQgcpCyKf-4', theme: 'dark' });
+            grecaptcha.reset(widgetId);
+        }
+
+        $(function ($) {
+
+            $('.menu-btn').click(function () {
+                $('.responsive-menu').toggle("slide", { direction: "right" }, 1000);
+            })
+
+            $("#desktop-menu a").bind("mouseenter", function (e) {
+                $(this).parent().addClass("hover");
+            })
+
+            $("#desktop-menu a").bind("mouseleave", function (e) {
+                $(this).parent().removeClass("hover");
+            })
+
+        })
+
+        $(document).mouseup(function (e) {
+
+            var container = $(".responsive-menu");
+            if (!container.is(e.target) // if the target of the click isn't the container...
+                && container.has(e.target).length === 0) // ... nor a descendant of the container
+            {
+                container.hide();
+            }
+
+        });
+
+
+    </script>
+
+
+    <title>@ViewBag.Title</title>
+
+
+</head>
+
+<body>
+
+    <div id="loadingPanel" class="loadingPanel">
+    </div>
+
+
+    <div class="mobile-nav">
+        <div class="menu-btn" id="menu-btn">
+            <div></div>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <div class="responsive-menu" style="display: none;">
+            <div id="responsive-menu-header">NAVIGATION MENU</div>
+            <hr id="responsive-menu-header-seperator">
+            <ul>
+
+                <li><a href="/">Home</a></li>
+
+                <li><a href="/">Register</a></li>
+                <li><a href="/Profile/Login">Login</a></li>
+
+            </ul>
+        </div>
+    </div>
+
+    <div>
+
+
+        <!--[if lt IE 8]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+
+        <div id="wrapper">
+
+            <header role="banner">
+                <div class="content">
+
+                    <a class="logo" href="/">my Parking receipt</a>
+                    <img src="../../elements/skin/CityImage.png" class="logo-print">
+
+                    <div id="desktop-menu">
+                      
+
+                        <span style="text-align:right;padding-left:526px">@Html.ActionLink("Logout", "Index", "Home", null, new { @id = "myAccountLink" })</span>
+                        @*<span style="text-align:right;">@Html.ActionLink("Login", "Login", "Account", null, new { @id = "loginLink" })</span>*@
+
+                        @*<span style="text-align:right" class="@ViewBag.CurrentPage"><a href="@Url.Action("Login", "Account")" id="receiptsLink">Login</a></span>*@
+
+
+
+
+                        @*<span style="text-align:right;" class="@ViewBag.Register"><a href="@Url.Action("Create", "User")"></a></span>*@
+                        @*<span style="text-align:right;">@Html.ActionLink("Register", "Create", "User", null, new { @id = "loginLinkk" })</span>*@
+
+                    </div>
+
+                    @*<a href="http://www.ipsgroupinc.com/" target="_blank" class="ips-logo">powered by IPS group</a>*@
+
+                </div>
+            </header>
+
+            <div class="container">
+
+
+                <article id="content" role="article">
+                    <div id="receipt">
+
+                        <script src="https://www.google.com/recaptcha/api.js?onload=gCaptchaOnloadCallback&amp;render=explicit" async="" defer=""></script>
+
+                        <script>
+
+    $(document).ready(function () {
+
+        $("#receiptsLink").parent().addClass("currentPage");
+
+        $(':checkbox').customInput();
+
+        $('.transaction-date').pickadate({
+            format: 'mm/dd/yyyy',
+            max: true
+        });
+
+        $("#expiration_date").mask("99/99");
+        //$("#last_four").mask("9999");
+        $("#transaction_date").mask("99/99/9999");
+
+        $("#first_six").keyup(function () {
+            $("#first_six").val(this.value.match(/[0-9]*/));
+        });
+
+        $("#last_four").keyup(function () {
+            $("#last_four").val(this.value.match(/[0-9]*/));
+        });
+
+
+        var $form = $('#ReceiptSearchForm');
+        var token = $('input[name="__RequestVerificationToken"]', $form).val();
+
+        $("#first_six").autocomplete({
+            minLength: 0,
+            source: function (request, response) {
+
+                var cardNumbers = new Array();
+                $.ajax({
+                    async: false,
+                    cache: false,
+                    type: "POST",
+                    url: "/Home/AutoCompleteFirstSix",
+                    data: { "term": request.term, "__RequestVerificationToken": token },
+                    success: function (data) {
+                        for (var i = 0; i < data.length; i++) {
+                            cardNumbers[i] = { label: data[i].Value, Id: data[i].Key };
+                        }
+                    }
+                });
+                response(cardNumbers);
+            },
+            select: function (event, ui) {
+
+                $.ajax({
+                    cache: false,
+                    async: false,
+                    type: "POST",
+                    url: "/Home/GetFirstSixDetail",
+                    data: { "first_six": ui.item.Id, "__RequestVerificationToken": token },
+                    success: function (data) {
+
+                        $("#last_four").val(data.last_four);
+
+                        var expiration_month = data.expiration_date.substring(0, data.expiration_date.indexOf("/"));
+                        var expiration_year = data.expiration_date.substring(data.expiration_date.indexOf("/") + 1, (data.expiration_date.length - data.expiration_date.indexOf("/")) + 2);
+                        if (expiration_month.length == 1) { expiration_month = "0" + expiration_month; }
+                        if (expiration_year.length == 4) { expiration_year = expiration_year.substring(2, 4); }
+                        $("#expiration_date").val(expiration_month + '/' + expiration_year);
+
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert('Failed to retrieve states.');
+                    }
+                });
+
+            }
+
+        }).focus(function(){
+            $(this).trigger('keydown.autocomplete');
+        }).focus(function () {
+            if (this.value == "") {
+
+                $(this).autocomplete("search");
+
+            }
+        });
+
+
+     });
+
+    function InitAsyncUI() {
+        ShowLoadingPanel();
+        $("#findMyReceiptLoading").css("visibility", "visible");
+    }
+
+    function CloseAsyncUI() {
+        HideLoadingPanel();
+        $("#findMyReceiptLoading").css("visibility", "hidden");
+    }
+
+    function OnSuccess(data) {
+
+        CloseAsyncUI();
+
+    }
+
+    function OnFailure(data) {
+
+        alert(data.responseText);
+
+    }
+
+                        </script>
+
+
+                        <div>
+
+                            @*<div class="content">
+                                    <h1>Look Up Your Receipt</h1>
+
+                                    <form action="/" class="form cols" data-ajax="true" data-ajax-complete="$('#receipt').hide().fadeIn(3000)" data-ajax-failure="OnFailure" data-ajax-mode="replace" data-ajax-success="OnSuccess" data-ajax-update="#receipt" id="ReceiptSearchForm" method="post">
+                                        <input name="__RequestVerificationToken" type="hidden" value="2_hyLudzwikmOsWAyoA-kgSmgAVj3vKX8wEnO7Y7CvC1SmN7VN3GV1KJLTOlFtIH4EtDYj8lyvFlh0T_iNAaLKLkQmiECJ4y7W7TBSAtz1w1"><div class="validation-summary-valid alert alert-danger" data-valmsg-summary="true">
+                                            <span>Please correct these errors:</span>
+                                            <ul>
+                                                <li style="display:none"></li>
+                                            </ul>
+                                        </div>            <div class="col-1-2 step-one">
+
+                                            <h2>Credit/Debit Card <span class="subhead">all fields are required</span></h2>
+                                            <div class="cols card-details-container">
+                                                <div class="col-1-2">
+                                                    <div class="field-container">
+                                                        <label for="first_six">First 6 digits</label>
+                                                        <input class="card-number first-six form-control ui-autocomplete-input" data-msg-required="First six is required." data-rule-required="true" id="first_six" name="first_six" placeholder="XXXXXX" type="text" value="" autocomplete="off">
+                                                    </div>
+                                                </div>
+                                                <div class="col-1-2">
+                                                    <div class="field-container">
+                                                        <label for="last_four">Last 4 digits</label>
+                                                        <input class="card-number last-four form-control" data-msg-maxlength="Max length is 4 digits." data-msg-minlength="Minimum length is 4 digits." data-msg-required="Last four is required." data-rule-maxlength="{&quot;max&quot;:4}" data-rule-minlength="{&quot;min&quot;:4}" data-rule-required="true" id="last_four" max="9999" maxlength="4" min="0000" name="last_four" placeholder="XXXX" type="text" value="">
+                                                    </div>
+                                                    <div class="field-container expiration-date-container">
+                                                        <label for="expiration_date">Expiration date</label>
+                                                        <input class="expiration-date expdate form-control" data-msg-required="Expiration date is required." data-rule-required="true" id="expiration_date" name="expiration_date" placeholder="mm/yy" type="text" value="">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-1-2 step-two">
+                                            <div class="field-container transaction-date-container">
+                                                <label for="transaction_date">Transaction date</label>
+                                                <input class="date transaction-date form-control picker__input" data-msg-required="Transaction date is required." data-rule-required="true" id="transaction_date" name="transaction_date" placeholder="mm/dd/yyyy" type="text" value="01/05/2017" readonly="" aria-haspopup="true" aria-expanded="false" aria-readonly="false" aria-owns="transaction_date_root"><div class="picker" id="transaction_date_root" aria-hidden="true"><div class="picker__holder" tabindex="-1"><div class="picker__frame"><div class="picker__wrap"><div class="picker__box"><div class="picker__header"><div class="picker__month">January</div><div class="picker__year">2017</div><div class="picker__nav--prev" data-nav="-1" role="button" aria-controls="transaction_date_table" title="Previous month"> </div><div class="picker__nav--next picker__nav--disabled" data-nav="1" role="button" aria-controls="transaction_date_table" title="Next month"> </div></div><table class="picker__table" id="transaction_date_table" role="grid" aria-controls="transaction_date" aria-readonly="true"><thead><tr><th class="picker__weekday" scope="col" title="Sunday">Sun</th><th class="picker__weekday" scope="col" title="Monday">Mon</th><th class="picker__weekday" scope="col" title="Tuesday">Tue</th><th class="picker__weekday" scope="col" title="Wednesday">Wed</th><th class="picker__weekday" scope="col" title="Thursday">Thu</th><th class="picker__weekday" scope="col" title="Friday">Fri</th><th class="picker__weekday" scope="col" title="Saturday">Sat</th></tr></thead><tbody><tr><td role="presentation"><div class="picker__day picker__day--infocus" data-pick="1483209000000" role="gridcell" aria-label="01/01/2017">1</div></td><td role="presentation"><div class="picker__day picker__day--infocus" data-pick="1483295400000" role="gridcell" aria-label="01/02/2017">2</div></td><td role="presentation"><div class="picker__day picker__day--infocus" data-pick="1483381800000" role="gridcell" aria-label="01/03/2017">3</div></td><td role="presentation"><div class="picker__day picker__day--infocus" data-pick="1483468200000" role="gridcell" aria-label="01/04/2017">4</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--selected picker__day--highlighted" data-pick="1483554600000" role="gridcell" aria-label="01/05/2017" aria-selected="true" aria-activedescendant="true">5</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--today" data-pick="1483641000000" role="gridcell" aria-label="01/06/2017">6</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1483727400000" role="gridcell" aria-label="01/07/2017" aria-disabled="true">7</div></td></tr><tr><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1483813800000" role="gridcell" aria-label="01/08/2017" aria-disabled="true">8</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1483900200000" role="gridcell" aria-label="01/09/2017" aria-disabled="true">9</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1483986600000" role="gridcell" aria-label="01/10/2017" aria-disabled="true">10</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1484073000000" role="gridcell" aria-label="01/11/2017" aria-disabled="true">11</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1484159400000" role="gridcell" aria-label="01/12/2017" aria-disabled="true">12</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1484245800000" role="gridcell" aria-label="01/13/2017" aria-disabled="true">13</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1484332200000" role="gridcell" aria-label="01/14/2017" aria-disabled="true">14</div></td></tr><tr><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1484418600000" role="gridcell" aria-label="01/15/2017" aria-disabled="true">15</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1484505000000" role="gridcell" aria-label="01/16/2017" aria-disabled="true">16</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1484591400000" role="gridcell" aria-label="01/17/2017" aria-disabled="true">17</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1484677800000" role="gridcell" aria-label="01/18/2017" aria-disabled="true">18</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1484764200000" role="gridcell" aria-label="01/19/2017" aria-disabled="true">19</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1484850600000" role="gridcell" aria-label="01/20/2017" aria-disabled="true">20</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1484937000000" role="gridcell" aria-label="01/21/2017" aria-disabled="true">21</div></td></tr><tr><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1485023400000" role="gridcell" aria-label="01/22/2017" aria-disabled="true">22</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1485109800000" role="gridcell" aria-label="01/23/2017" aria-disabled="true">23</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1485196200000" role="gridcell" aria-label="01/24/2017" aria-disabled="true">24</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1485282600000" role="gridcell" aria-label="01/25/2017" aria-disabled="true">25</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1485369000000" role="gridcell" aria-label="01/26/2017" aria-disabled="true">26</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1485455400000" role="gridcell" aria-label="01/27/2017" aria-disabled="true">27</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1485541800000" role="gridcell" aria-label="01/28/2017" aria-disabled="true">28</div></td></tr><tr><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1485628200000" role="gridcell" aria-label="01/29/2017" aria-disabled="true">29</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1485714600000" role="gridcell" aria-label="01/30/2017" aria-disabled="true">30</div></td><td role="presentation"><div class="picker__day picker__day--infocus picker__day--disabled" data-pick="1485801000000" role="gridcell" aria-label="01/31/2017" aria-disabled="true">31</div></td><td role="presentation"><div class="picker__day picker__day--outfocus picker__day--disabled" data-pick="1485887400000" role="gridcell" aria-label="02/01/2017" aria-disabled="true">1</div></td><td role="presentation"><div class="picker__day picker__day--outfocus picker__day--disabled" data-pick="1485973800000" role="gridcell" aria-label="02/02/2017" aria-disabled="true">2</div></td><td role="presentation"><div class="picker__day picker__day--outfocus picker__day--disabled" data-pick="1486060200000" role="gridcell" aria-label="02/03/2017" aria-disabled="true">3</div></td><td role="presentation"><div class="picker__day picker__day--outfocus picker__day--disabled" data-pick="1486146600000" role="gridcell" aria-label="02/04/2017" aria-disabled="true">4</div></td></tr><tr><td role="presentation"><div class="picker__day picker__day--outfocus picker__day--disabled" data-pick="1486233000000" role="gridcell" aria-label="02/05/2017" aria-disabled="true">5</div></td><td role="presentation"><div class="picker__day picker__day--outfocus picker__day--disabled" data-pick="1486319400000" role="gridcell" aria-label="02/06/2017" aria-disabled="true">6</div></td><td role="presentation"><div class="picker__day picker__day--outfocus picker__day--disabled" data-pick="1486405800000" role="gridcell" aria-label="02/07/2017" aria-disabled="true">7</div></td><td role="presentation"><div class="picker__day picker__day--outfocus picker__day--disabled" data-pick="1486492200000" role="gridcell" aria-label="02/08/2017" aria-disabled="true">8</div></td><td role="presentation"><div class="picker__day picker__day--outfocus picker__day--disabled" data-pick="1486578600000" role="gridcell" aria-label="02/09/2017" aria-disabled="true">9</div></td><td role="presentation"><div class="picker__day picker__day--outfocus picker__day--disabled" data-pick="1486665000000" role="gridcell" aria-label="02/10/2017" aria-disabled="true">10</div></td><td role="presentation"><div class="picker__day picker__day--outfocus picker__day--disabled" data-pick="1486751400000" role="gridcell" aria-label="02/11/2017" aria-disabled="true">11</div></td></tr></tbody></table><div class="picker__footer"><button class="picker__button--today" type="button" data-pick="1483641000000" disabled="" aria-controls="transaction_date">Today</button><button class="picker__button--clear" type="button" data-clear="1" disabled="" aria-controls="transaction_date">Clear</button><button class="picker__button--close" type="button" data-close="true" disabled="" aria-controls="transaction_date">Close</button></div></div></div></div></div></div>
+                                            </div>
+                                            <div class="field-container">
+                                                <table id="transactionDatePaddingTable">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td><span class="custom-checkbox checked"><input checked="checked" data-val="true" data-val-required="The +/- 3 days field is required." id="date_pad" name="date_pad" type="checkbox" value="true"></span><input name="date_pad" type="hidden" value="false"></td>
+                                                            <td><label for="date_pad">+/- 3 days</label></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            <div class="topPaddingCaptcha g-recaptcha"><div style="width: 304px; height: 78px;"><div><iframe src="https://www.google.com/recaptcha/api2/anchor?k=6LepqhQTAAAAAAReKZEwlTXrzpmbaTQgcpCyKf-4&amp;co=aHR0cHM6Ly93d3cubXlwYXJraW5ncmVjZWlwdHMuY29tOjQ0Mw..&amp;hl=en&amp;v=r20161215161951&amp;theme=dark&amp;size=normal&amp;cb=n9bblyorrv5m" title="recaptcha widget" width="304" height="78" frameborder="0" scrolling="no" name="undefined"></iframe></div><textarea id="g-recaptcha-response" name="g-recaptcha-response" class="g-recaptcha-response" style="width: 250px; height: 40px; border: 1px solid #c1c1c1; margin: 10px 25px; padding: 0px; resize: none;  display: none; "></textarea></div></div>
+                                            <button type="submit" class="submit-search" onclick="return InitAsyncUI()"><span id="findMyReceiptText"><img src="/elements/loader.gif" id="findMyReceiptLoading" height="25" width="25">Find My Receipt</span></button>
+                                        </div>
+                                    </form>
+                                </div>*@
+
+                        </div>
+
+
+
+
+
+                    </div>
+                </article>
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+    <div id="editVehicleInfo" class="modal fade">
+        <div class="vertical-alignment-helper">
+            <div class="modal-dialog vertical-align-center">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" onclick="return CancelEditVehicle()" aria-hidden="true">×</button>
+                        <h3 class="modal-title"><span class="glyphicon glyphicon-pencil"></span>&nbsp;&nbsp;<b>Edit Vehicle Information</b></h3>
+                    </div>
+                    <div class="modal-body">
+
+                        <div id="editVehicleValidationSummary" class="alert-danger">
+
+                        </div>
+
+                        <input type="hidden" value="" id="hdnEditCarId">
+
+                        <div class="form-group">
+                            <label>Make</label>
+                            <input class="form-control" id="txtEditVehicleMake" name="CurrentVehicleMake" placeholder="Make" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Model</label>
+                            <input class="form-control" id="txtEditVehicleModel" name="CurrentVehicleModel" placeholder="Model" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Color</label>
+                            <input class="form-control" id="txtEditVehicleColor" name="CurrentVehicleColor" placeholder="Color" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Year</label>
+                            <input class="form-control" id="txtEditVehicleYear" name="CurrentVehicleYear" placeholder="Year" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>License</label>
+                            <input class="form-control" id="txtEditVehicleLicensePlate" name="CurrentVehicleLicensePlate" placeholder="License Plate" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>State</label>
+                            <select class="form-control" id="EditVehicleSelectedState" name="EditVehicleSelectedState">
+                                <option value="--Select--">--Select--</option>
+                                <option value="Alabama">Alabama</option>
+                                <option value="Alaska">Alaska</option>
+                                <option value="Arizona">Arizona</option>
+                                <option value="Arkansas">Arkansas</option>
+                                <option value="California">California</option>
+                                <option value="Colorado">Colorado</option>
+                                <option value="Connecticut">Connecticut</option>
+                                <option value="Delaware">Delaware</option>
+                                <option value="Florida">Florida</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Hawaii">Hawaii</option>
+                                <option value="Idaho">Idaho</option>
+                                <option value="Illinois">Illinois</option>
+                                <option value="Indiana">Indiana</option>
+                                <option value="Iowa">Iowa</option>
+                                <option value="Kansas">Kansas</option>
+                                <option value="Kentucky">Kentucky</option>
+                                <option value="Louisiana">Louisiana</option>
+                                <option value="Maine">Maine</option>
+                                <option value="Maryland">Maryland</option>
+                                <option value="Massachusetts">Massachusetts</option>
+                                <option value="Michigan">Michigan</option>
+                                <option value="Minnesota">Minnesota</option>
+                                <option value="Mississippi">Mississippi</option>
+                                <option value="Missouri">Missouri</option>
+                                <option value="Montana">Montana</option>
+                                <option value="Nebraska">Nebraska</option>
+                                <option value="New Hampshire">New Hampshire</option>
+                                <option value="New Jersey">New Jersey</option>
+                                <option value="New Mexico">New Mexico</option>
+                                <option value="New York">New York</option>
+                                <option value="North Carolina">North Carolina</option>
+                                <option value="North Dakota">North Dakota</option>
+                                <option value="Ohio">Ohio</option>
+                                <option value="Oklahoma">Oklahoma</option>
+                                <option value="Oregon">Oregon</option>
+                                <option value="Pennsylvania">Pennsylvania</option>
+                                <option value="Rhode Island">Rhode Island</option>
+                                <option value="South Carolina">South Carolina</option>
+                                <option value="South Dakota">South Dakota</option>
+                                <option value="Tennessee">Tennessee</option>
+                                <option value="Texas">Texas</option>
+                                <option value="Utah">Utah</option>
+                                <option value="Vermont">Vermont</option>
+                                <option value="Virginia">Virginia</option>
+                                <option value="Washington">Washington</option>
+                                <option value="Washington, DC">Washington, DC</option>
+                                <option value="West Virginia">West Virginia</option>
+                                <option value="Wisconsin">Wisconsin</option>
+                                <option value="Wyoming">Wyoming</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" id="btnModalCancelEditVehicle" onclick="return CancelEditVehicle()">Close</button>
+                        <button type="button" class="btn btn-primary" id="btnModalEditVehicle" onclick="return UpdateVehicle('/Home/UpdateCar')">Update Vehicle</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addVehicleInfo" class="modal fade">
+        <div class="vertical-alignment-helper">
+            <div class="modal-dialog vertical-align-center">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" onclick="return CancelAddVehicle()" aria-hidden="true">×</button>
+                        <h3 class="modal-title">
+                            <span class="glyphicon glyphicon-plus-sign"></span>&nbsp;&nbsp;<b>
+                                Information
+                            </b>
+                        </h3>
+                    </div>
+                    <div class="modal-body">
+
+                        <div id="addNewVehicleValidationSummary" class="alert-danger">
+
+                        </div>
+
+                        <div class="form-group">
+                            <label>Make</label>
+                            <input class="form-control" id="txtAddNewVehicleMake" name="CurrentVehicleMake" placeholder="Make" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Model</label>
+                            <input class="form-control" id="txtAddNewVehicleModel" name="CurrentVehicleModel" placeholder="Model" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Color</label>
+                            <input class="form-control" id="txtAddNewVehicleColor" name="CurrentVehicleColor" placeholder="Color" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Year</label>
+                            <input class="form-control" id="txtAddNewVehicleYear" name="CurrentVehicleYear" placeholder="Year" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>License</label>
+                            <input class="form-control" id="txtAddNewVehicleLicensePlate" name="CurrentVehicleLicensePlate" placeholder="License Plate" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>State</label>
+                            <select class="form-control" id="NewVehicleSelectedState" name="NewVehicleSelectedState">
+                                <option value="--Select--">--Select--</option>
+                                <option value="Alabama">Alabama</option>
+                                <option value="Alaska">Alaska</option>
+                                <option value="Arizona">Arizona</option>
+                                <option value="Arkansas">Arkansas</option>
+                                <option value="California">California</option>
+                                <option value="Colorado">Colorado</option>
+                                <option value="Connecticut">Connecticut</option>
+                                <option value="Delaware">Delaware</option>
+                                <option value="Florida">Florida</option>
+                                <option value="Georgia">Georgia</option>
+                                <option value="Hawaii">Hawaii</option>
+                                <option value="Idaho">Idaho</option>
+                                <option value="Illinois">Illinois</option>
+                                <option value="Indiana">Indiana</option>
+                                <option value="Iowa">Iowa</option>
+                                <option value="Kansas">Kansas</option>
+                                <option value="Kentucky">Kentucky</option>
+                                <option value="Louisiana">Louisiana</option>
+                                <option value="Maine">Maine</option>
+                                <option value="Maryland">Maryland</option>
+                                <option value="Massachusetts">Massachusetts</option>
+                                <option value="Michigan">Michigan</option>
+                                <option value="Minnesota">Minnesota</option>
+                                <option value="Mississippi">Mississippi</option>
+                                <option value="Missouri">Missouri</option>
+                                <option value="Montana">Montana</option>
+                                <option value="Nebraska">Nebraska</option>
+                                <option value="New Hampshire">New Hampshire</option>
+                                <option value="New Jersey">New Jersey</option>
+                                <option value="New Mexico">New Mexico</option>
+                                <option value="New York">New York</option>
+                                <option value="North Carolina">North Carolina</option>
+                                <option value="North Dakota">North Dakota</option>
+                                <option value="Ohio">Ohio</option>
+                                <option value="Oklahoma">Oklahoma</option>
+                                <option value="Oregon">Oregon</option>
+                                <option value="Pennsylvania">Pennsylvania</option>
+                                <option value="Rhode Island">Rhode Island</option>
+                                <option value="South Carolina">South Carolina</option>
+                                <option value="South Dakota">South Dakota</option>
+                                <option value="Tennessee">Tennessee</option>
+                                <option value="Texas">Texas</option>
+                                <option value="Utah">Utah</option>
+                                <option value="Vermont">Vermont</option>
+                                <option value="Virginia">Virginia</option>
+                                <option value="Washington">Washington</option>
+                                <option value="Washington, DC">Washington, DC</option>
+                                <option value="West Virginia">West Virginia</option>
+                                <option value="Wisconsin">Wisconsin</option>
+                                <option value="Wyoming">Wyoming</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" id="btnModalCancelAddVehicle" onclick="return CancelAddVehicle()">Close</button>
+                        <button type="button" class="btn btn-primary" id="btnModalAddVehicle" onclick="return AddVehicle('/Home/AddCar')">Add Vehicle</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="editCreditCardInfo" class="modal fade">
+        <div class="vertical-alignment-helper">
+            <div class="modal-dialog vertical-align-center">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" onclick="return CancelEditCard()" aria-hidden="true">×</button>
+                        <h3 class="modal-title"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;&nbsp;<b>Edit Credit Card Information</b></h3>
+                    </div>
+                    <div class="modal-body">
+
+                        <div id="editCardValidationSummary" class="alert-danger"></div>
+
+                        <input type="hidden" value="" id="hdnEditCardId">
+                        <div class="form-group">
+                            <label>Card Alias</label>
+                            <input class="form-control" id="txtEditCardAlias" name="txtEditCardAlias" placeholder="Card Alias" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <div class="note"><label>*As an added security measure, we ask that you verify this card number in order to update our records.</label></div>
+                            <label>Card Number</label>
+                            <input class="form-control" id="txtEditCardNumber" name="txtEditCardNumber" onkeyup="CardNumberChanged($(this))" placeholder="Card Number" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Zip Code</label>
+                            <input class="form-control" id="txtEditCardZipCode" name="txtEditCardZipCode" placeholder="Zip Code" type="number" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Expiration</label>
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td id="cardDetailTableContainer">
+                                            <table id="cardDetailTable">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="col1">
+                                                            <select class="MMYYInput form-control" id="SelectedEditCardExpMonth" name="SelectedEditCardExpMonth">
+                                                                <option value="MM">MM</option>
+                                                                <option value="01">Jan</option>
+                                                                <option value="02">Feb</option>
+                                                                <option value="03">Mar</option>
+                                                                <option value="04">Apr</option>
+                                                                <option value="05">May</option>
+                                                                <option value="06">Jun</option>
+                                                                <option value="07">Jul</option>
+                                                                <option value="08">Aug</option>
+                                                                <option value="09">Sep</option>
+                                                                <option value="10">Oct</option>
+                                                                <option value="11">Nov</option>
+                                                                <option value="12">Dec</option>
+                                                            </select>
+                                                        </td>
+                                                        <td class="col2">
+                                                            <select class="MMYYInput form-control" id="SelectedEditCardExpYear" name="SelectedEditCardExpYear">
+                                                                <option value="YYYY">YYYY</option>
+                                                                <option value="2017">2017</option>
+                                                                <option value="2018">2018</option>
+                                                                <option value="2019">2019</option>
+                                                                <option value="2020">2020</option>
+                                                                <option value="2021">2021</option>
+                                                                <option value="2022">2022</option>
+                                                                <option value="2023">2023</option>
+                                                                <option value="2024">2024</option>
+                                                                <option value="2025">2025</option>
+                                                                <option value="2026">2026</option>
+                                                                <option value="2027">2027</option>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" id="btnModalCancelEditCard" onclick="return CancelEditCard()">Close</button>
+                        <button type="button" class="btn btn-primary" id="btnModalEditCard" onclick="return UpdateCard('/Home/UpdateCard')">Update Card</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addCreditCardInfo" class="modal fade">
+        <div class="vertical-alignment-helper">
+            <div class="modal-dialog vertical-align-center">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" onclick="return CancelAddCard()" aria-hidden="true">×</button>
+                        <h3 class="modal-title"><span class="glyphicon glyphicon-plus-sign"></span>&nbsp;&nbsp;<b>Add Credit Card Information</b></h3>
+                    </div>
+                    <div class="modal-body">
+
+                        <div id="addNewCardValidationSummary" class="alert-danger"></div>
+                        <div class="form-group">
+                            <label>Card Alias</label>
+                            <input class="form-control" id="txtAddNewCardAlias" name="txtAddNewCardAlias" placeholder="Card Alias" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Card Number</label>
+                            <input class="form-control" id="txtAddNewCardNumber" name="txtAddNewCardNumber" onkeyup="CardNumberChanged($(this))" placeholder="Card Number" type="text" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Zip Code</label>
+                            <input class="form-control" id="txtAddNewCardZipCode" name="txtAddNewCardZipCode" placeholder="Zip Code" type="number" value="">
+                        </div>
+                        <div class="form-group">
+                            <label>Expiration</label>
+                            <table>
+                                <tbody>
+                                    <tr>
+                                        <td id="cardDetailTableContainer">
+                                            <table id="cardDetailTable">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="col1">
+                                                            <select class="MMYYInput form-control" id="SelectedNewCardExpMonth" name="SelectedNewCardExpMonth">
+                                                                <option value="MM">MM</option>
+                                                                <option value="01">Jan</option>
+                                                                <option value="02">Feb</option>
+                                                                <option value="03">Mar</option>
+                                                                <option value="04">Apr</option>
+                                                                <option value="05">May</option>
+                                                                <option value="06">Jun</option>
+                                                                <option value="07">Jul</option>
+                                                                <option value="08">Aug</option>
+                                                                <option value="09">Sep</option>
+                                                                <option value="10">Oct</option>
+                                                                <option value="11">Nov</option>
+                                                                <option value="12">Dec</option>
+                                                            </select>
+                                                        </td>
+                                                        <td class="col2">
+                                                            <select class="MMYYInput form-control" id="SelectedNewCardExpYear" name="SelectedNewCardExpYear">
+                                                                <option value="YYYY">YYYY</option>
+                                                                <option value="2017">2017</option>
+                                                                <option value="2018">2018</option>
+                                                                <option value="2019">2019</option>
+                                                                <option value="2020">2020</option>
+                                                                <option value="2021">2021</option>
+                                                                <option value="2022">2022</option>
+                                                                <option value="2023">2023</option>
+                                                                <option value="2024">2024</option>
+                                                                <option value="2025">2025</option>
+                                                                <option value="2026">2026</option>
+                                                                <option value="2027">2027</option>
+                                                            </select>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" id="btnModalCancelAddCard" onclick="return CancelAddCard()">Close</button>
+                        <button type="button" class="btn btn-primary" id="btnModalAddCard" onclick="return AddCard('/Profile/VerifyCardExists', '/Profile/VerifyCardNumber', '/Home/AddCard')">Add Card</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="verifyCreditCardInfo" class="modal fade">
+        <div class="vertical-alignment-helper">
+            <div class="modal-dialog vertical-align-center">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3 class="modal-title"><span class="glyphicon glyphicon-check"></span>&nbsp;&nbsp;<b>Verify Credit Card Information</b></h3>
+                    </div>
+                    <div class="modal-body">
+                        <p>To better serve you, we ask that you please verify the following credit card information we have on file for your account:</p>
+
+                        <div id="creditCardVerificationInfoContainer">
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="creditCardFAQ" class="modal fade">
+        <div class="vertical-alignment-helper">
+            <div class="modal-dialog vertical-align-center">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                        <h3 class="modal-title"><img width="20" height="20" class="iconTextLineAlignment" src="/elements/skin/question.png" alt="Credit Card FAQ">&nbsp;&nbsp;<b>Credit Card FAQ</b></h3>
+                    </div>
+                    <div class="modal-body">
+                        <p>Some content about credit card information....</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" data-dismiss="modal" class="btn btn-primary">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="cardConfirmDelete" class="modal fade">
+        <div class="vertical-alignment-helper">
+            <div class="modal-dialog vertical-align-center">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="ResetRemoveCard()">×</button>
+                        <h3 class="modal-title"><img src="/elements/delete.png" class="iconTextLineAlignment" width="20" height="20" alt="Delete">&nbsp;&nbsp;<b>Confirmation</b></h3>
+                    </div>
+                    <div class="modal-body">
+                        <p>Please confirm removal of the requested credit card record?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="ResetRemoveCard()">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="ExecRemoveCard('/Profile/RemoveCard')">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="carConfirmDelete" class="modal fade">
+        <div class="vertical-alignment-helper">
+            <div class="modal-dialog vertical-align-center">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true" onclick="ResetRemoveVehicle()">×</button>
+                        <h3 class="modal-title"><img src="/elements/delete.png" class="iconTextLineAlignment" width="20" height="20" alt="Delete">&nbsp;&nbsp;<b>Confirmation</b></h3>
+                    </div>
+                    <div class="modal-body">
+                        <p>Please confirm removal of the requested vehicle record?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" onclick="ResetRemoveVehicle()">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="ExecRemoveVehicle('/Home/RemoveCar')">Confirm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @*<div id="termsAndConditions" class="modal fade">
+            <div class="vertical-alignment-helper">
+                <div class="modal-dialog vertical-align-center">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            <h3 class="modal-title"><span class="glyphicon glyphicon-list-alt"></span>&nbsp;&nbsp;<b>Terms and Conditions</b></h3>
+                        </div>
+                        <div class="modal-body">
+
+
+                            <h1>TERMS OF USE</h1>
+                            <p>In this Web Site Terms of Use (“TOU”), we, IPS Group, Inc. (“IPS”) set forth the terms by which you may use our sites including <a href="http://www.myparkingreceipt.com">www.myparkingreceipt.com</a>, <a href="http://www.ipsgroupinc.com">www.ipsgroupinc.com</a> and other web sites that we operate and on which we post a direct link to this statement (collectively the “Site”). By using the Site, you are agreeing to this TOU. If you do not agree to this TOU, you may not and should not use the Site.</p>
+
+                            <h2>1.	Copyright Notice and Use of the Site.</h2>
+                            <p>The contents of the Site are protected by the copyright and other laws of the United States, its treaty countries and other jurisdictions. Except as may otherwise be provided in a written Agreement you have withIPS, you may not modify, copy, reproduce, republish, upload, post, transmit, transfer, or distribute in any way any of the contents of this site. You may download content from this site solely for your personal, non-commercial use (except as may otherwise be provided in a written agreement you have with IPS), provided you keep intact all copyright and other proprietary notices. Any copies of the content must include IPS’s copyright notice: © Copyright 2005-2016 IPS Group, Inc. All rights reserved.</p>
+                            <p>If you elect to use this site, you may incur expenses from your network carrier. You acknowledge and herby agree that you will be solely responsible for such expenses.</p>
+
+                            <h2>2.	Links.</h2>
+                            <p>This website may contain links to third party web sites which are controlled and operated by third parties. Your use of each third party web site is subject to the terms of use and other guidelines, if any, contained within the relevant web site. You agree to review and accept such terms of use prior to using such third party web sites. IPS makes no representations whatsoever about any third party web site which you may access through the website. When you access a third party web site, you agree that it is independent from IPS, and that IPS has no control over any content on that web site. In addition, a link to a third party web site does not mean that IPS accepts any responsibility for the content, or the use, of such web site. It is up to you to take precautions to ensure that whatever you select for your use is free of such items as viruses, worms, trojans and other items of a destructive nature.</p>
+
+                            <h2>3.	Privacy.</h2>
+                            <p>In order to operate and provide the Site, we collect certain information about you. Our practices with respect to the information we collect is described in our privacy policy which is available at <a href="http://www.ipsgroupinc.com/privacy/">http://www.ipsgroupinc.com/privacy/</a> (“Privacy Policy”). By agreeing to this TOU you are agreeing to our Privacy Policy. Information, including but not limited to personal information, collected through the Site may be stored and processed in the United States or any other country in which IPS or its affiliates, subsidiaries or agents maintain facilities. By using the service, you consent to any such transfer of information outside of your country.</p>
+
+                            <h2>4.	Disclaimer.</h2>
+                            <p>The materials on the Site are provided “as is” and without warranties of any kind either express or implied. Commentary and other materials posted on the Site are not intended to amount to advice on which reliance should be placed and we therefore disclaim all liability and responsibility arising from any such reliance. To the fullest extent permissible pursuant to applicable law, IPS disclaims all warranties, express or implied, including, but not limited to, implied warranties of merchantability and fitness for a particular purpose, title and non-infringement and any other conditions, warranties and other terms which might otherwise be implied by statute, common law or the law of equity. IPS does not warrant that the Site or functions contained in the materials will be uninterrupted or error-free, that defects will be corrected, or that the Site, or the server that makes it available, are free of viruses or other harmful components. IPS does not warrant or make any representations regarding the use or the results of the use of the materials on the Site in terms of correctness, accuracy, timeliness, reliability, or otherwise. You (and not IPS or its licensors) assume the entire cost of all necessary maintenance, repair, or correction.</p>
+                            <p>You agree irrevocably that, should you incur any loss or damage, whether direct or indirect, from the use of this site, you waive any such claim and indemnify us from any claim made against us arising from your use of the site. You agree that such waiver will include a waiver of any claim you may have against us even if such claim arises from our negligence or fault.</p>
+
+                            <h2>5.	Limitation of liability.</h2>
+                            <p>Under no circumstances, including, but not limited to, negligence, shall IPS, its subsidiaries and parent companies and affiliates be liable for any direct, indirect, incidental, special or consequential damages that arise or result from or are related to the use of, or the inability to use, the Site or any of the Postings made available on or through the Site. Under no circumstances shall IPS’s aggregate liability exceed $5.00. You specifically acknowledge and agree that IPS, its subsidiaries and parent companies and affiliates are not liable for any defamatory, offensive or illegal conduct of any user of the Site or any posting to the Site. If you are dissatisfied with the Site or any materials made available by or through the Site, or with this TOU, your sole and exclusive remedy is to discontinue using the Site.</p>
+
+                            <h2>6.	Notices of copyright infringement.</h2>
+                            <p>
+                                Notifications of claimed copyright infringement should be sent to IPS’s Designated Agent in writing at the following address:
+                            </p><address>
+                                IPS Group Inc
+                                5601 Oberlin Drive Suite 100<br>
+                                San Diego, CA 92121<br>
+                                Telephone Number of Designated Agent: (858) 634-2083<br>
+                                Facsimile Number of Designated Agent: (858) 404-0603<br>
+                                Email Address of Designated Agent: legal@ipsgroupinc.com<br>
+                            </address>
+                            To be effective, the Notification must include the following:
+                            <ul>
+                                <li>A physical or electronic signature of the owner whose exclusive right is allegedly infringed or a person authorized to act on his or her behalf;</li>
+                                <li>Identification of the copyrighted work claimed to have been infringed, or if multiple copyrighted works at a single online site are covered by a single notification, a representative list of such works at that site;</li>
+                                <li>Identification of the material that is claimed to be infringing or is the subject of infringing activity and that is to be removed or access to which is to be disabled, and information reasonably sufficient to permit IPS to locate the material on the Site;</li>
+                                <li>Information reasonably sufficient to permit IPS to contact the copyright owner or his/her authorized agent including an address, telephone number, and if available, an electronic mail address;</li>
+                                <li>A statement that the copyright owner or authorized agent has a good faith belief that use of the material in the manner complained of is not authorized by the copyright owner, its agent, or the law;</li>
+                                <li>
+                                    A statement that the information in the notification is accurate, and if submitted by the owner’s authorized agent a statement under penalty of perjury, that the agent is authorized to act on behalf of the owner of an exclusive right that is allegedly infringed. Within a commercially reasonable time after receipt of the written Notification containing the information as outlined in 1 through 6 above IPS shall remove or disable access to the material that is alleged to be infringing and forward the written notification to the alleged infringer and take reasonable steps to promptly notify the alleged infringer that IPS has removed or disabled access to the allegedly infringing material. Counter Notification: To be effective, a Counter Notification must be a written communication provided to IPS’s Designated Agent at the above provided address that includes substantially the following:
+                                    <ul>
+                                        <li>A physical or electronic signature of the alleged infringer;</li>
+                                        <li>Identification of the material that has been removed or to which access has been disabled and the location at which the material appeared before it was removed or access to it was disabled;</li>
+                                        <li>A statement under penalty of perjury that the alleged infringer has a good faith belief that the material was removed or disabled as a result of a mistake or misidentification of the material to be removed or disabled;</li>
+                                        <li>
+                                            The alleged infringer’s name, address, and telephone number, and a statement that the alleged infringer consents to the jurisdiction of Federal District Court for San Diego County, California, or if the Subscriber’s address is outside of the United States, for any judicial district in which IPS may be found, and that the alleged infringer will accept service of process from the person who provided notification or an agent of such person.<br>
+                                            After receipt of a Counter Notification containing the information as outlined in 1 through 4 above, IPS shall provide the Complaining Party with a copy of the Counter Notification within a commercially reasonable time and inform the copyright owner or designated agent that IPS will replace the removed material or cease disabling access to it within ten (10) business days. If IPS’s designated agent has not received notice from the copyright owner or his/her designated agent within ten (10) business days that an action has been filed seeking a court order to restrain the alleged infringer from engaging in infringing activity in relation to the allegedly infringing material, IPS shall restore the allegedly infringing material.
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <p></p>
+
+                            <h2>7.  EXPORT RESTRICTIONS.</h2>
+                            <p>ANY SOFTWARE OR OTHER MATERIALS WE MAKE AVAILABLE ON THE SITE ARE SUBJECT TO UNITED STATES EXPORT LAWS AND REGULATIONS. YOU MUST COMPLY WITH ALL DOMESTIC AND INTERNATIONAL EXPORT LAWS AND REGULATIONS THAT APPLY TO THE SOFWARE OR OTHER MATERIALS YOU OBTAIN FROM OUR SITE. THESE LAWS INCLUDE RESTRICTIONS ON DESTINATIONS, END USERS AND END USE.</p>
+
+                            <h2>8.  Export Compliance Assurances.</h2>
+                            <p>You acknowledge that all products, proprietary data, know-how, software or other data or information (herein referred to as “Products”) obtained from IPS or any direct Product thereof are subject to the United States (U.S.) government export control laws accordingly their use, export and re-export, may be restricted or prohibited. You and your affiliates agree to obtain prior to export an authorization from the applicable U.S. government agency (either in writing or as provided by applicable regulation). These U.S. government restrictions are implemented principally through the Export Administration Regulations (“EAR”, 15 C.F.R. §§ 730 et seq., available at <a href="http://www.bis.doc.gov/">http://www.bis.doc.gov/</a>) administered by Department of Commerce, Bureau of Industry and Security and the Foreign Asset Control Regulations administered by the Department of Treasury, Office of Foreign Assets Control (“OFAC”, 30 C.F.R. Part 500 et. Seq. available at <a href="http://www.treas.gov/offices/enforcement/ofac/">http://www.treas.gov/offices/enforcement/ofac/</a>). You, therefore, agree that neither you nor your subsidiaries or affiliates will directly or indirectly export, re-export, transfer, or release, or cause to be exported or re-exported (herein referred to as “export”), any such Products or any direct Product thereof to any destination or entity prohibited or restricted under U.S. law including but not limited to U.S. government embargoed or sanctioned countries or entities, or nationals unless you shall obtain prior to export an authorization from the applicable U.S. government agency (either in writing or as provided by applicable regulation). You further agree that no Products received from IPS will be directly or indirectly employed in missile technology, sensitive nuclear, or chemical biological weapons end uses or in any manner transferred to any party for any such end use. This requirement shall survive any termination or expiration of this Agreement.</p>
+
+                            <h2>9.  Trademarks.</h2>
+                            <p>IPS Group Logo and My Parking Receipt are a trademark ofIPS. Certain other product names, brand names and company names mentioned in this site may be trademarks of their respective owners.</p>
+
+                            <h2>10.  Modification &amp; Termination.</h2>
+                            <p>This TOU is effective until modified or terminated by IPS. IPS may modify this TOU from time to time and the new TOU will be effective when posted. IPS may also terminate this TOU at any time without notice to you. In the event of termination, you are no longer authorized to access the Site and the restrictions imposed on you with respect to material downloaded from the Site, the disclaimers and limitations of liabilities, and export restrictions set forth in this agreement, shall survive.</p>
+
+                            <h2>11.  General.</h2>
+                            <p>This TOU shall be governed by and construed in accordance with the laws of the State of California without giving effect to any principles or conflicts of law. If any provision of this TOU shall be unlawful, void or for any reason unenforceable, then that provision shall be deemed severable from this agreement and shall not affect the validity and enforceability of any remaining provisions.</p>
+
+                            <h2>Effective:</h2>
+                            <p>March 29, 2016</p>
+
+
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" data-dismiss="modal" class="btn btn-primary">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>*@
+
+    <div class="container">
+        @RenderBody()
+        @RenderSection("scripts", required: false)
+        <footer>
+            <div class="content">
+                <ul class="navigation">
+                    <li><a href="#">Terms</a></li>
+                    <li><a href="#">Privacy</a></li>
+                    <li><a href="#">Support</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                </ul>
+                <p class="disclaimer">In using this tool, I confirm that the information entered above is from my personal billing statement. If it is not, I confirm that I am authorized by the account holder to complete this form on their behalf.</p>
+                <p><span class="copyright">©2017 IPS Group, Inc.</span> <span class="all-rights-reserved">All Rights Reserved</span> <span class="divider">|</span> <a href="http://ipsgroupinc.com/" target="_blank" class="ipsgroup-link">ipsgroupinc.com</a></p>
+            </div>
+        </footer>
+    </div>
+
+    <div id="cboxOverlay" style="display: none;"></div><div id="colorbox" class="" role="dialog" tabindex="-1" style="display: none;"><div id="cboxWrapper"><div><div id="cboxTopLeft" style="float: left;"></div><div id="cboxTopCenter" style="float: left;"></div><div id="cboxTopRight" style="float: left;"></div></div><div style="clear: left;"><div id="cboxMiddleLeft" style="float: left;"></div><div id="cboxContent" style="float: left;"><div id="cboxTitle" style="float: left;"></div><div id="cboxCurrent" style="float: left;"></div><button type="button" id="cboxPrevious"></button><button type="button" id="cboxNext"></button><button id="cboxSlideshow"></button><div id="cboxLoadingOverlay" style="float: left;"></div><div id="cboxLoadingGraphic" style="float: left;"></div></div><div id="cboxMiddleRight" style="float: left;"></div></div><div style="clear: left;"><div id="cboxBottomLeft" style="float: left;"></div><div id="cboxBottomCenter" style="float: left;"></div><div id="cboxBottomRight" style="float: left;"></div></div></div><div style="position: absolute; width: 9999px; visibility: hidden; display: none; max-width: none;"></div></div><ul class="ui-autocomplete ui-front ui-menu ui-widget ui-widget-content" id="ui-id-1" tabindex="0" style="display: none;"></ul><span role="status" aria-live="assertive" aria-relevant="additions" class="ui-helper-hidden-accessible"></span>
+</body>
+</html>

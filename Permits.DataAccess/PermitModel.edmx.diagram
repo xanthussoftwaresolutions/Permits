@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="ad0e303d437f426dada83a5a05d84a06" Name="Diagram1" ZoomLevel="89">
+        <EntityTypeShape EntityType="PermitsDevModel.Agency" Width="1.5" PointX="3" PointY="1.875" />
+        <EntityTypeShape EntityType="PermitsDevModel.AgencyPreferences" Width="1.5" PointX="12.75" PointY="6.75" />
+        <EntityTypeShape EntityType="PermitsDevModel.AuditLog" Width="1.5" PointX="12.75" PointY="10.75" />
+        <EntityTypeShape EntityType="PermitsDevModel.BusinessRule" Width="1.5" PointX="8" PointY="14.5" />
+        <EntityTypeShape EntityType="PermitsDevModel.Car" Width="1.5" PointX="12.75" PointY="13.75" />
+        <EntityTypeShape EntityType="PermitsDevModel.Card" Width="1.5" PointX="0.75" PointY="14.75" />
+        <EntityTypeShape EntityType="PermitsDevModel.CarMake" Width="1.5" PointX="11.75" PointY="4" />
+        <EntityTypeShape EntityType="PermitsDevModel.CarModel" Width="1.5" PointX="14" PointY="3.875" />
+        <EntityTypeShape EntityType="PermitsDevModel.Document" Width="1.5" PointX="8" PointY="20.75" />
+        <EntityTypeShape EntityType="PermitsDevModel.DocumentProofType" Width="1.5" PointX="10.25" PointY="17.5" />
+        <EntityTypeShape EntityType="PermitsDevModel.PermitSubType" Width="1.5" PointX="8" PointY="10.125" />
+        <EntityTypeShape EntityType="PermitsDevModel.PermitSubTypeBusinessRule" Width="1.5" PointX="10.25" PointY="7.5" />
+        <EntityTypeShape EntityType="PermitsDevModel.PermitSubTypeProof" Width="1.5" PointX="10.25" PointY="10.375" />
+        <EntityTypeShape EntityType="PermitsDevModel.PermitSubTypeZone" Width="1.5" PointX="12" PointY="0.875" />
+        <EntityTypeShape EntityType="PermitsDevModel.PermitType" Width="1.5" PointX="5.75" PointY="10.625" />
+        <EntityTypeShape EntityType="PermitsDevModel.ProofType" Width="1.5" PointX="8" PointY="17.625" />
+        <EntityTypeShape EntityType="PermitsDevModel.Roles" Width="1.5" PointX="5.25" PointY="3.375" />
+        <EntityTypeShape EntityType="PermitsDevModel.States" Width="1.5" PointX="2.75" PointY="14.75" />
+        <EntityTypeShape EntityType="PermitsDevModel.Template" Width="1.5" PointX="4.75" PointY="14.75" />
+        <EntityTypeShape EntityType="PermitsDevModel.UserProfiles" Width="1.5" PointX="3" PointY="9.125" />
+        <EntityTypeShape EntityType="PermitsDevModel.UserRoles" Width="1.5" PointX="9.75" PointY="4.125" />
+        <EntityTypeShape EntityType="PermitsDevModel.Users" Width="1.5" PointX="0.75" PointY="5" />
+        <EntityTypeShape EntityType="PermitsDevModel.WebUser" Width="1.5" PointX="7.5" PointY="2.75" />
+        <EntityTypeShape EntityType="PermitsDevModel.WebUserLogin" Width="1.5" PointX="14.75" PointY="6.75" />
+        <EntityTypeShape EntityType="PermitsDevModel.Zone" Width="1.5" PointX="9.75" PointY="1.125" />
+        <AssociationConnector Association="PermitsDevModel.FK_dbo_Agency_dbo_Users_CreatedById" />
+        <AssociationConnector Association="PermitsDevModel.FK_dbo_Agency_dbo_Users_UpdatedById" />
+        <AssociationConnector Association="PermitsDevModel.FK_Roles_Agency" />
+        <AssociationConnector Association="PermitsDevModel.FK_WebUser_Agency" />
+        <AssociationConnector Association="PermitsDevModel.FK_PermitSubTypeBusinessRule_PermitSubTypeBusinessRule" />
+        <AssociationConnector Association="PermitsDevModel.FK_CarModel_CarMake" />
+        <AssociationConnector Association="PermitsDevModel.FK_DocumentProofType_Document" />
+        <AssociationConnector Association="PermitsDevModel.FK_DocumentProofType_ProofType" />
+        <AssociationConnector Association="PermitsDevModel.FK_PermitSubType_PermitType" />
+        <AssociationConnector Association="PermitsDevModel.FK_PermitSubTypeBusinessRule_PermitSubType" />
+        <AssociationConnector Association="PermitsDevModel.FK_PermitSubTypeProof_PermitSubType" />
+        <AssociationConnector Association="PermitsDevModel.FK_PermitSubTypeProof_ProofType" />
+        <AssociationConnector Association="PermitsDevModel.FK_PermitSubTypeZone_Zone" />
+        <AssociationConnector Association="PermitsDevModel.FK_UserRoles_Roles" />
+        <AssociationConnector Association="PermitsDevModel.FK_WebUser_Roles" />
+        <AssociationConnector Association="PermitsDevModel.FK_dbo_UserProfiles_dbo_Users_CreatedById" />
+        <AssociationConnector Association="PermitsDevModel.FK_dbo_UserProfiles_dbo_Users_Id" />
+        <AssociationConnector Association="PermitsDevModel.FK_dbo_UserProfiles_dbo_Users_UpdatedById" />
+        <AssociationConnector Association="PermitsDevModel.FK_UserRoles_WebUser" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
